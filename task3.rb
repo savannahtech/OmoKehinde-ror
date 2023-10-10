@@ -1,19 +1,32 @@
-# It can be possible when users make request that bypasses the cache
 
-
-
+# Enforce the check for quota to ensure quota isn't exceeded by each user
 class ApplicationController < ActionController::API
-    before_filter :user_quota
-  
-    def user_quota
-      cached_count = current_user.count_hits
-      uncached_count = current_user.hits.where('created_at >= ?', 
-            Time.now.beginning_of_month).count
-      total_count = cached_count + uncached_count
-  
-      if total_count >= 10000
-        render json: { error: 'over quota' }
-      end
+  before_action :user_quota
+
+  QUOTA_LIMIT = 10_000
+
+  def user_quota
+    if current_user.exceeds_quota?
+      render json: { error: 'over quota' }
     end
   end
+end
+
+# Modify the User object to contains a property to check if quota is exceeded 
+
+class User < ApplicationRecord
+  has_many :hits
+
+  def exceeds_quota?
+    total_hits >= QUOTA_LIMIT
+  end
+
+  private
+
+  def total_hits
+    start_of_month = Time.now.beginning_of_month
+    hits.where('created_at >= ?', start_of_month).count
+  end
+end
+
   
