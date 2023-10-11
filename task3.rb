@@ -24,7 +24,7 @@ class User < ApplicationRecord
   private
 
   def total_hits
-    start_of_month = Time.now.beginning_of_month
+    start_of_month = Time.now.utc.beginning_of_month
     hits.where('created_at >= ?', start_of_month).count
   end
 end

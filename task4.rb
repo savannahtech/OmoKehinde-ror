@@ -22,7 +22,8 @@ class User < ApplicationRecord
   
     def total_hits
       cached_hits = count_hits
-      uncached_hits = hits.where('created_at >= ?', Time.now.beginning_of_month).count
+      uncached_hits = 
+        hits.where('created_at >= ?', Time.now.utc.beginning_of_month).count
       cached_hits + uncached_hits
     end
   end
